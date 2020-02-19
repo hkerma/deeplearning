@@ -14,13 +14,13 @@ Here is a detailed schedule, session by session:
 2. Quantification
    1. **Short evaluation** on Deep Learning Essentials
    2. **Student's presentation** of short project - exploring hyper parameters on a fixed architecture
-   3. Course - Quantifying Deep neural networks
-   4. Practical session - quantification on a small convolutional network 
+   3. [Course](cours2.pdf) - Quantifying Deep neural networks
+   4. [Practical session](lab2.md) - quantification on a small convolutional network 
    5. Long project 1 - MicroNet Challenge
 3. Pruning
    1. **Short evaluation** on Quantification
-   2. Course - Pruning Deep neural networks
-   3. Practical session - pruning on a small convolutional network 
+   2. [Course](cours3.pdf) - Pruning Deep neural networks
+   3. [Practical session](lab3.md) - pruning on a small convolutional network.
    4. Long project 2 - MicroNet Challenge
 4. Factorization
    1. **Short evaluation** on Pruning
@@ -54,14 +54,9 @@ Evaluation in this course
 --
 
 There are **short written evaluations** during the first 10 minutes of **each** session starting from session 2. Don't be late!  
-In addition, there are **students' presentations**, at sessions 2, 4, 6 and 8. 
+BNN+For the final session, we ask you to prepare a 20 minutes presentation, that will be followed by 10 Minutes of question. 
 
-MicroNet Challenge and final presentations
---
-Please follow the [MicroNet Rules](https://micronet-challenge.github.io/) in order to evaluate your proposal. 
-
-For the final session, we ask you to prepare a 20 minutes presentation, that will be followed by 10 Minutes of question. 
-
+You'll find in the micronet-ressources folder, presentations from the winners of the 2019, and rules for the 2020 challenge. 
 
 General References
 --
@@ -72,12 +67,52 @@ Amazon Book - [Dive into Deep learning](https://d2l.ai/)
 
 [Tutorial presentation on Efficient Deep Learning from NeurIPS'19](http://eyeriss.mit.edu/2019_neurips_tutorial.pdf)
 
+
+Training Deep Networks
+--
+
+Here are some academic papers discussing learning rate strategies : 
+
+- [Cyclic learning rates](https://arxiv.org/abs/1506.01186)
+- [Demystifying Learning Rate Policies for High Accuracy Training of Deep Neural Networks](https://arxiv.org/abs/1908.06477)
+- [A Closer Look at Deep Learning Heuristics: Learning rate restarts, Warmup and Distillation](https://arxiv.org/abs/1810.13243)
+
+Main strategies are [readily available in pytorch.](https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate)
+
+Pytorch
+--
+
+Start page to access the full [python API](https://pytorch.org/docs/stable/torch.html) of pytorch, to check all existing functions.
+
+[A useful tutorial on Saving and Loading models](https://pytorch.org/tutorials/beginner/saving_loading_models.html).
+
+[Pytorch Cheat Sheet](https://pytorch.org/tutorials/beginner/ptcheat.html).
+
+
+
 Quantization
 --
+[Binary Connect](http://papers.nips.cc/paper/5647-binaryconnect-training-deep-neural-networks-with-b)
+
+[XnorNet](https://link.springer.com/chapter/10.1007/978-3-319-46493-0_32)
+
+[BNN+](https://openreview.net/forum?id=SJfHg2A5tQ)
+
+[Whitepaper of quantization](https://arxiv.org/abs/1806.08342)
+
 
 Pruning
 --
+[Pruning Filters for Efficient ConvNets](https://arxiv.org/abs/1608.08710)
 
+[ThiNet](https://arxiv.org/abs/1707.06342)
+
+
+[AutoML for Model Compression (AMC)](https://arxiv.org/abs/1802.03494)
+
+[Pruning Channel with Attention Statistics (PCAS)](https://arxiv.org/abs/1806.05382)
+
+[BitPruning: Learning Bitlengths for Aggressive and Accurate Quantization](https://arxiv.org/abs/2002.03090)
 
 Factorization
 -- 
@@ -110,5 +145,5 @@ Companies / private sector
 
 [13 highest funded startups for hardware for DL](https://www.crunchbase.com/lists/relevant-ai-chip-startups/922b3cf5-b19d-4c28-9978-4e66ccb52337/organization.companies)
 
-[more complete list of companies working on hardware DL](https://roboticsandautomationnews.com/2019/05/24/top-25-ai-chip-companies-a-macro-step-change-on-the-micro-scale/22704/)
+[More complete list of companies working on hardware DL](https://roboticsandautomationnews.com/2019/05/24/top-25-ai-chip-companies-a-macro-step-change-on-the-micro-scale/22704/)
 
