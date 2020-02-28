@@ -5,6 +5,7 @@ from torch.autograd import Variable
 import random
 import torch.nn.init as init
 import numpy as np
+from ShakeShake import ShakeShake, Shortcut
 
 #Some usefull functions
 def conv3x3(in_planes, out_planes, stride=1):
