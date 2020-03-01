@@ -3,21 +3,25 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 import random 
+from torch.autograd import Variable
 
 class ShakeShake(torch.autograd.Function):
-
     @staticmethod
-    def forward(ctx,x1,x2,training=True):
+    def forward(ctx, x1, x2, training=True):
         if training:
-            alpha = random.randint(0,1)
+            alpha = torch.cuda.FloatTensor(x1.size(0)).uniform_()
+            alpha = alpha.view(alpha.size(0), 1, 1, 1).expand_as(x1)
         else:
             alpha = 0.5
-        return alpha*x1 + (1 - alpha)*x2
+        return alpha * x1 + (1 - alpha) * x2
 
     @staticmethod
-    def backward(ctx,grad_output):
-        beta = random.randint(0,1)
-        return beta*grad_output,(1-beta)*grad_output
+    def backward(ctx, grad_output):
+        beta = torch.cuda.FloatTensor(grad_output.size(0)).uniform_()
+        beta = beta.view(beta.size(0), 1, 1, 1).expand_as(grad_output)
+        beta = Variable(beta)
+
+        return beta * grad_output, (1 - beta) * grad_output, None
 
 class Shortcut(nn.Module):
 

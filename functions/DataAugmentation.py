@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import random
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
-%matplotlib inline
 import matplotlib as mpl
 from torchvision.datasets import CIFAR10,CIFAR100
 from torch.utils.data import DataLoader,Subset
