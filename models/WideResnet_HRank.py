@@ -70,6 +70,7 @@ class Wide_ResNet(nn.Module):
         super(Wide_ResNet, self).__init__()
         self.in_planes = 16
         self.depth = depth
+        self.widen_factor = widen_factor
 
         assert ((depth-4)%6 ==0), 'Wide-resnet depth should be 6n+4'
         n = (depth-4)/6
