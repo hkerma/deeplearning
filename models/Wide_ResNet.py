@@ -1,4 +1,4 @@
-### WIDE RESNET IMPLEMENTATION WITH HRANK PRUNING###
+### WIDE RESNET IMPLEMENTATION ###
 
 import torch
 import torch.nn as nn
@@ -24,10 +24,6 @@ def conv_init(m):
 class wide_basic(nn.Module):
     def __init__(self, in_planes, planes, dropout_rate, stride=1):
         super(wide_basic, self).__init__()
-        self.rank1 = []
-        self.rank2 = []
-        self.init = False
-        self.pruning = False
         self.bn1 = nn.BatchNorm2d(in_planes)
         self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, padding=1, bias=True)
         self.dropout = nn.Dropout(p=dropout_rate)
@@ -39,41 +35,18 @@ class wide_basic(nn.Module):
             self.shortcut = nn.Sequential(
                 nn.Conv2d(in_planes, planes, kernel_size=1, stride=stride, bias=True),
             )
-    def init_rank(self,conv,out):
-        if conv == "conv1":
-            self.rank1 = [0]*out
-        elif conv == "conv2":
-            self.rank2 = [0]*out
 
-    def rank(self,x,conv):
-        if conv == "conv1":
-          for f in range(x[0].shape[0]):
-              self.rank1[f] += torch.matrix_rank(x[0][f])
-        elif conv == "conv2":
-          for f in range(x[0].shape[0]):
-              self.rank2[f] += torch.matrix_rank(x[0][f])
-        
     def forward(self, x):
-        if self.init == False:
-            self.init_rank("conv1",x[0].shape[0])
-            self.init_rank("conv2",x[0].shape[0])
-            self.init = True
         out = self.dropout(self.conv1(F.relu(self.bn1(x))))
-        if self.pruning:
-        	self.rank(x,"conv1")
         out = self.conv2(F.relu(self.bn2(out)))
-        if self.pruning:
-        	self.rank(x,"conv2")
         out += self.shortcut(x)
 
         return out
 
-class Wide_ResNet_HRank(nn.Module):
+class Wide_ResNet(nn.Module):
     def __init__(self, depth, widen_factor, dropout_rate, num_classes):
         super(Wide_ResNet, self).__init__()
         self.in_planes = 16
-        self.depth = depth
-        self.widen_factor = widen_factor
 
         assert ((depth-4)%6 ==0), 'Wide-resnet depth should be 6n+4'
         n = (depth-4)/6
@@ -114,4 +87,5 @@ class Wide_ResNet_HRank(nn.Module):
 if __name__ == '__main__':
     net=Wide_ResNet(28, 10, 0.3, 10)
     y = net(Variable(torch.randn(1,3,32,32)))
+
     print(y.size())
