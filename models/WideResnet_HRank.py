@@ -68,9 +68,11 @@ class wide_basic(nn.Module):
 
         return out
 
+
+
 class Wide_ResNet_HRank(nn.Module):
     def __init__(self, depth, widen_factor, dropout_rate, num_classes):
-        super(Wide_ResNet, self).__init__()
+        super(Wide_ResNet_HRank, self).__init__()
         self.in_planes = 16
         self.depth = depth
         self.widen_factor = widen_factor

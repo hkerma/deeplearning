@@ -64,17 +64,17 @@ class HRank():
         DG = self.init_dependency_graph()
         r1,r2,r3 = self.P[0],self.P[1],self.P[2]
         if r1 > 0 and (self.count[0] < math.floor(self.lenght[0]*self.P[0])):
-            self.count[0] += 1
+            self.count[0] += self.r
             self.pruning_layer_1(self.model.layer1,DG)
         else:
             pass
         if r2 > 0 and (self.count[1] < math.floor(self.lenght[1]*self.P[1])):
-            self.count[1] += 1
+            self.count[1] += self.r
             self.pruning_layer_1(self.model.layer2,DG)
         else:
             pass
         if r3 > 0 and (self.count[2] < math.floor(self.lenght[2]*self.P[2])):
-            self.count[2] += 1
+            self.count[2] += self.r
             self.pruning_layer_1(self.model.layer3,DG)
         else:
             pass
