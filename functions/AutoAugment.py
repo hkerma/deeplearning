@@ -254,22 +254,21 @@ class Cutout(object):
 
     def __call__(self, img):
         
-        num = random.randint(1,4)
-        for n in range(num):
-            img = np.array(img)
 
-            mask_val = img.mean()
+        img = np.array(img)
 
-            top = np.random.randint(0 - self.length//2, img.shape[0] - self.length)
-            left = np.random.randint(0 - self.length//2, img.shape[1] - self.length)
-            bottom = top + self.length
-            right = left + self.length
+        mask_val = img.mean()
 
-            top = 0 if top < 0 else top
-            left = 0 if left < 0 else top
+        top = np.random.randint(0 - self.length//2, img.shape[0] - self.length)
+        left = np.random.randint(0 - self.length//2, img.shape[1] - self.length)
+        bottom = top + self.length
+        right = left + self.length
 
-            img[top:bottom, left:right, :] = mask_val
+        top = 0 if top < 0 else top
+        left = 0 if left < 0 else top
 
-            img = Image.fromarray(img)
+        img[top:bottom, left:right, :] = mask_val
+
+        img = Image.fromarray(img)
 
         return img
