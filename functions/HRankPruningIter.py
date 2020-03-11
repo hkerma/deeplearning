@@ -14,15 +14,16 @@ import sys
 
 #print(model_test)
 class HRank():
-    def __init__(self,model,data,P):
+    def __init__(self,model,data,P,r):
         super(HRank, self).__init__()
         self.model = model
         self.data = data
+        self.r = r
         self.P = P
         #Suppose that our net has three layers
         self.count = [0]*3
         self.lenght = [self.model.widen_factor*16, self.model.widen_factor*32, self.model.widen_factor*64]
-        self.max_iter = int(max(np.multiply(self.lenght,self.P)))
+        self.max_iter = int((1/self.r)*int(max(np.multiply(self.lenght,self.P))))
 
     def rank_processing(self,rank):
         processed_rank = [[l,rank[l]] for l in range(len(rank))] 
@@ -49,11 +50,11 @@ class HRank():
 
     def pruning_layer_1(self,layer,DG):
         N = int(((self.model.depth-4)/6))
-        F1 = self.extract_weak_filters(self.rank_processing(layer[-1].rank1),1)
+        F1 = self.extract_weak_filters(self.rank_processing(layer[-1].rank1),self.r)
         self.pruning_conv(layer[-1].conv1,F1,DG)
 
         for n in range(N-1):
-            F1 = self.extract_weak_filters(self.rank_processing(layer[n].rank1),1)
+            F1 = self.extract_weak_filters(self.rank_processing(layer[n].rank1),self.r)
             self.pruning_conv(layer[n].conv1,F1,DG)
         
     def HRank(self):
