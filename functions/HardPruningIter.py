@@ -85,10 +85,13 @@ class HardPrunning():
             self.count[2] += 1
             self.pruning_wide_block(self.model.layer3,r3,DG)
 
-    def pruning_and_training(self, trainloader, batch_size = 128, epoch = 2, lr = 0.01):
+    def pruning_and_training(self, trainloader, batch_size = 128, epoch = 1, lr = 0.001):
             for it in range(self.max_iter):
+            	print('\n[1] PRUNING | ITER : {}-----------------------------------------------------------'.format(it))
+    			print('\n=> Pruning Net... | Layer1 : {} Layer2 : {} Layer3 : {}%'.format(self.P[0],self.P[1],self.P[2])
                 self.HardPruning()
                 self.model.train()
+                print('\n[2] FINE TUNING-------------------------------------------------------------------')
                 for e in range(epoch):
                     train_loss = 0
                     correct = 0

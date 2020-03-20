@@ -83,10 +83,13 @@ class HRank():
         model_parameters = filter(lambda p: p.requires_grad, self.model.parameters())
         return sum([np.prod(p.size()) for p in model_parameters])
 
-    def pruning_and_training(self, trainloader, batch_size = 128, epoch = 2, lr = 0.01):
+    def pruning_and_training(self, trainloader, batch_size = 128, epoch = 1, lr = 0.001):
         for it in range(self.max_iter):
+        	print('\n[1] PRUNING | ITER : {}-----------------------------------------------------------'.format(it))
+    		print('\n=> Pruning Net... | Layer1 : {} Layer2 : {} Layer3 : {}%'.format(self.P[0],self.P[1],self.P[2])
             self.HRank(trainloader)
             self.model.train()
+            print('\n[2] FINE TUNING-------------------------------------------------------------------')
             for e in range(epoch):
                 train_loss = 0
                 correct = 0

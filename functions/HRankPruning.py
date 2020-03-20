@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch_pruning as pruning
-
+import math
 
 class HRank():
     def __init__(self,model,data,P):
@@ -21,15 +21,16 @@ class HRank():
     
     def model_analysis(self):
         for _, (data,labels) in enumerate(self.data):
+            data = data.cuda()
+            labels = labels.cuda()
             output = self.model(data)
 
     def init_dependency_graph(self,input_w=32,input_h=32):
-        DG = pruning.DependencyGraph(self.model, fake_input=torch.randn(1,3,input_w,input_h))
+        DG = pruning.DependencyGraph(self.model, fake_input=torch.randn(1,3,input_w,input_h).cuda())
         return DG
 
     def pruning_conv(self,conv,F,DG):
         pruning_plan = DG.get_pruning_plan(conv, pruning.prune_conv, idxs=F)
-        print(pruning_plan)
         pruning_plan.exec()
 
     def pruning_layer_1(self,layer,ratio,DG):
