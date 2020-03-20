@@ -1,0 +1,9 @@
+
+
+1. Faire un apprentissage sur CIFAR100 (AutoAugment + Cutout) - Faire un apprentissage sur CIFAR100 (Pas AutoAugment + Cutout) (2 courbes comparatives)
+2. Etudier le pruning non itératif + 1 epoch de FineTuning pour chacun des 3 layers de WideResnet et obtenir les ratios adaptés : méthode sur les filtres et méthode sur les feature maps
+- Liste des ratios pour chaque layer : [0.2,0.4,0.6,0.8]
+3. Etudier l'influence du BinaryConnect sur le modèle pré-entrainé et pruné sur Cifar100 (2 courbes comparative)
+4. Faire de la distillation
+5. Calculer le score MicroNet
+

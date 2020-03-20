@@ -2,7 +2,7 @@ import numpy as np
 import torch.nn as nn
 import math 
 import torch_pruning as pruning
-
+import torch
 
 class HardPrunning():
 
@@ -52,9 +52,7 @@ class HardPrunning():
         return DG
 
     def pruning_conv(self,conv,F,DG):
-        print(F)
         pruning_plan = DG.get_pruning_plan(conv, pruning.prune_conv, idxs=F)
-        print(pruning_plan)
         pruning_plan.exec()
 
     def number_of_trainable_params(self,model):
@@ -67,8 +65,6 @@ class HardPrunning():
         Fi_conv1,Fi_conv2,Fn_conv1,Fn_conv2  = weak_filters[0],weak_filters[1],weak_filters[2][0],weak_filters[2][1]
         self.pruning_conv(layer[-1].conv1,Fn_conv1,DG)
         #self.pruning_conv(layer[-1].conv2,Fn_conv2,DG)
-        print(layer[-1])
-        print(len(Fi_conv1))
         for i in range(N-1):
             self.pruning_conv(layer[i].conv1,Fi_conv1[i],DG)
             #self.pruning_conv(layer[i].conv2,Fi_conv2[i],DG)

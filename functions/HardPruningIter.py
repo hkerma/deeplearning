@@ -2,7 +2,7 @@ import numpy as np
 import torch.nn as nn
 import math 
 import torch_pruning as pruning
-
+import torch
 
 class HardPrunning():
 

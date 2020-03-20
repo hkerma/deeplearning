@@ -6,18 +6,17 @@ import torch.optim as optim
 from torch.autograd import Variable
 import torch_pruning as pruning
 #from WideResnet_HRank import Wide_ResNet
-from DataAugmentation import DataAugmentation
-from AutoAugment import AutoAugment, Cutout
-
+#from DataAugmentation import DataAugmentation
+#from AutoAugment import AutoAugment, Cutout
+import numpy as np
 import os
 import sys
 
 #print(model_test)
 class HRank():
-    def __init__(self,model,data,P,r):
+    def __init__(self,model,P,r):
         super(HRank, self).__init__()
         self.model = model
-        self.data = data
         self.r = r
         self.P = P
         #Suppose that our net has three layers
@@ -34,8 +33,8 @@ class HRank():
         weak_filters = [F[0] for F in importance_sorted]
         return weak_filters[:P]
     
-    def model_analysis(self):
-        for _, (data,labels) in enumerate(self.data):
+    def model_analysis(self, trainloader):
+        for _, (data,labels) in enumerate(trainloader):
             data = data.cuda()
             labels = labels.cuda()
             output = self.model(data)
@@ -57,24 +56,24 @@ class HRank():
             F1 = self.extract_weak_filters(self.rank_processing(layer[n].rank1),self.r)
             self.pruning_conv(layer[n].conv1,F1,DG)
         
-    def HRank(self):
+    def HRank(self,trainloader):
         print("Sending data through the net...")
-        self.model_analysis()
+        self.model_analysis(trainloader)
         print("Weak filters have been identified ! ")
         DG = self.init_dependency_graph()
         r1,r2,r3 = self.P[0],self.P[1],self.P[2]
         if r1 > 0 and (self.count[0] < math.floor(self.lenght[0]*self.P[0])):
-            self.count[0] += 1
+            self.count[0] += self.r
             self.pruning_layer_1(self.model.layer1,DG)
         else:
             pass
         if r2 > 0 and (self.count[1] < math.floor(self.lenght[1]*self.P[1])):
-            self.count[1] += 1
+            self.count[1] += self.r
             self.pruning_layer_1(self.model.layer2,DG)
         else:
             pass
         if r3 > 0 and (self.count[2] < math.floor(self.lenght[2]*self.P[2])):
-            self.count[2] += 1
+            self.count[2] += self.r
             self.pruning_layer_1(self.model.layer3,DG)
         else:
             pass
@@ -86,7 +85,7 @@ class HRank():
 
     def pruning_and_training(self, trainloader, batch_size = 128, epoch = 2, lr = 0.01):
         for it in range(self.max_iter):
-            self.HRank()
+            self.HRank(trainloader)
             self.model.train()
             for e in range(epoch):
                 train_loss = 0
