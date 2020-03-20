@@ -85,10 +85,12 @@ class HRank():
 
     def pruning_and_training(self, trainloader, batch_size = 128, epoch = 1, lr = 0.001):
         for it in range(self.max_iter):
-        	print('\n[1] PRUNING | ITER : {}-----------------------------------------------------------'.format(it))
-    		print('\n=> Pruning Net... | Layer1 : {} Layer2 : {} Layer3 : {}%'.format(self.P[0],self.P[1],self.P[2])
+        	print('\n[1] PRUNING | ITER : {}/{}-----------------------------------------------------------'.format(it,self.max_iter))
+    		print('\n=> Pruning Net... | Layer1 : {}% Layer2 : {}% Layer3 : {}%'.format(self.P[0]*100,self.P[1]*100,self.P[2]*100)
             self.HRank(trainloader)
             self.model.train()
+            removed_weights = self.number_of_trainable_params(self.model)
+            print('\n Removed weights : {}'.format(removed_weights))
             print('\n[2] FINE TUNING-------------------------------------------------------------------')
             for e in range(epoch):
                 train_loss = 0
@@ -97,7 +99,7 @@ class HRank():
                 optimizer = optim.SGD(self.model.parameters(), lr=lr, momentum=0.9)
                 criterion = nn.CrossEntropyLoss()
                 for batch_idx, (inputs,targets) in enumerate(trainloader):
-                    inputs, targets = inputs.cuda(),targets.cuda()
+                	inputs, targets = inputs.cuda(),targets.cuda()
                     optimizer.zero_grad()
                     inputs, targets = Variable(inputs), Variable(targets)
                     outputs = self.model(inputs)
