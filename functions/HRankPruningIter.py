@@ -83,10 +83,10 @@ class HRank():
         model_parameters = filter(lambda p: p.requires_grad, self.model.parameters())
         return sum([np.prod(p.size()) for p in model_parameters])
 
-    def pruning_and_training(self, trainloader, batch_size = 128, epoch = 1, lr = 0.001):
+    def pruning_and_training(self, trainloader, tesloader, batch_size = 128, epoch = 2, lr = 0.001):
         for it in range(self.max_iter):
-        	print('\n[1] PRUNING | ITER : {}/{}-----------------------------------------------------------'.format(it,self.max_iter))
-    		print('\n=> Pruning Net... | Layer1 : {}% Layer2 : {}% Layer3 : {}%'.format(self.P[0]*100,self.P[1]*100,self.P[2]*100)
+        	  print('\n[1] PRUNING | ITER : {}/{}-----------------------------------------------------------'.format(it,self.max_iter))
+    		    print('\n=> Pruning Net... | Layer1 : {}% Layer2 : {}% Layer3 : {}%'.format(self.P[0]*100,self.P[1]*100,self.P[2]*100)
             self.HRank(trainloader)
             self.model.train()
             removed_weights = self.number_of_trainable_params(self.model)
@@ -96,10 +96,12 @@ class HRank():
                 train_loss = 0
                 correct = 0
                 total = 0
+                if e > 0:
+                    lr = lr/2
                 optimizer = optim.SGD(self.model.parameters(), lr=lr, momentum=0.9)
                 criterion = nn.CrossEntropyLoss()
                 for batch_idx, (inputs,targets) in enumerate(trainloader):
-                	inputs, targets = inputs.cuda(),targets.cuda()
+                	  inputs, targets = inputs.cuda(),targets.cuda()
                     optimizer.zero_grad()
                     inputs, targets = Variable(inputs), Variable(targets)
                     outputs = self.model(inputs)
@@ -114,3 +116,30 @@ class HRank():
                     sys.stdout.write('Trainable params [{}]'.format(self.number_of_trainable_params(self.model)))
                     sys.stdout.write('|Iteration [%3d] Epoch [%3d/%3d] Iter[%3d]\t\tLoss: %.4f Acc@1: %.3f%%'%(it,e, epoch, batch_idx+1, loss.item(), 100.*correct/total))
                     sys.stdout.flush()
+
+            self.model.eval()
+            self.model.training = False
+            test_loss = 0
+            correct = 0
+            total = 0
+            criterion = nn.CrossEntropyLoss()
+            with torch.no_grad():
+                for batch_idx, (inputs, targets) in enumerate(testloader): 
+                    inputs, targets = inputs.cuda(), targets.cuda()
+                    inputs, targets = Variable(inputs), Variable(targets)
+                    outputs = self.model(inputs)
+                    loss = criterion(outputs, targets)
+
+                    test_loss += loss.item()
+                    predicted = torch.max(outputs.data, 1)[1]
+                    total += targets.size(0)
+                    correct += predicted.eq(targets.data).cpu().sum()
+
+        # Save checkpoint when best model
+                acc = 100.*correct/total
+                print('\n | Test {} '.format(acc))
+                if acc > self.best_acc:
+                    print('| New Best Accuracy...\t\t\tTop1 = %.2f%%' %(acc)) 
+                    print('| Saving Pruned Model...')
+                    torch.save(self.model,"wide_resnet_iter_hrank.pth")
+                    self.best_acc = acc

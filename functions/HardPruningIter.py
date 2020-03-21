@@ -13,10 +13,11 @@ class HardPrunningIter():
     def __init__(self,model,P):
         self.model = model
         self.P = P
-        self.best_acc = -1000
+        self.best_acc = []
+        self.net_weights = []
         self.count = [0]*3
         self.lenght = [self.model.widen_factor*16, self.model.widen_factor*32, self.model.widen_factor*64]
-        self.max_iter = int(max(np.multiply(self.lenght,self.P)))
+        self.max_iter = int(max(np.multiply(self.lenght,self.P))/5)
 
     def importance_score(self,conv):
         F = conv.out_channels
@@ -43,14 +44,14 @@ class HardPrunningIter():
             R2 = math.floor(ratio*conv2.out_channels)
             importance1 = self.importance_score(conv1)
             importance2 = self.importance_score(conv2)
-            weak1 = self.extract_min_filter(importance1,1)
-            weak2 = self.extract_min_filter(importance2,1)
+            weak1 = self.extract_min_filter(importance1,5)
+            weak2 = self.extract_min_filter(importance2,5)
             res1.append(weak1)
             res2.append(weak2)
         conv1n,conv2n = layer[-1].conv1,layer[-1].conv2
         R1,R2 = math.floor(ratio*conv1n.out_channels),math.floor(ratio*conv2n.out_channels)
         importance1n,importance2n = self.importance_score(conv1n),self.importance_score(conv2n)
-        weak_filters1n,weak_filters2n = self.extract_min_filter(importance1n,1),self.extract_min_filter(importance2n,1)
+        weak_filters1n,weak_filters2n = self.extract_min_filter(importance1n,5),self.extract_min_filter(importance2n,5)
         resn.append(weak_filters1n)
         resn.append(weak_filters2n)
         return res1,res2,resn
@@ -89,10 +90,21 @@ class HardPrunningIter():
         if r3 > 0 and (self.count[2] < math.floor(self.lenght[2]*self.P[2])):
             self.count[2] += 1
             self.pruning_wide_block(self.model.layer3,r3,DG)
+    
+    def learning_rate(self,epoch,init):
+        optim_factor = 0
+        if (epoch > 3):
+            optim_factor = 3
+        elif(epoch > 2):
+            optim_factor = 2
+        elif(epoch > 1):
+            optim_factor = 1
+        return init*math.pow(0.2,optim_factor)
 
-    def pruning_and_training(self, testloader, trainloader, batch_size = 128, epoch = 1, lr = 0.001):
-        self.best_acc = -1000
+
+    def pruning_and_training(self, testloader, trainloader, batch_size = 128, epoch = 3, lr = 0.001):
         for it in range(self.max_iter):
+            best_acc = -1000
             print('\n[1] PRUNING | ITER : {}/{}-----------------------------------------------------------'.format(it+1,self.max_iter))
             print('\n=> Pruning Net... | Layer1 : {}% Layer2 : {}% Layer3 : {}%'.format(self.P[0]*100,self.P[1]*100,self.P[2]*100))
             self.HardPruning()
@@ -104,7 +116,7 @@ class HardPrunningIter():
                 train_loss = 0
                 correct = 0
                 total = 0
-                optimizer = optim.SGD(self.model.parameters(), lr=lr, momentum=0.9)
+                optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate(e,lr), momentum=0.9)
                 criterion = nn.CrossEntropyLoss()
                 for batch_idx, (inputs,targets) in enumerate(trainloader):
                     inputs, targets = inputs.cuda(),targets.cuda()
@@ -120,31 +132,35 @@ class HardPrunningIter():
                     correct += predicted.eq(targets.data).cpu().sum()
                     sys.stdout.write('\r')
                     sys.stdout.write('Trainable params [{}]'.format(self.number_of_trainable_params(self.model)))
-                    sys.stdout.write('|Iteration [%3d] Epoch [%3d/%3d] Iter[%3d/%3d]\t\tLoss: %.4f Acc@1: %.3f%%'%(it+1,e + 1, epoch, batch_idx+1,391, loss.item(), 100.*correct/total))
+                    sys.stdout.write('| Iteration [%3d] Epoch [%3d/%3d] Iter [%3d/%3d] LR [%3d] \t\tLoss: %.4f Acc@1: %.3f%%'%(it+1,e + 1, epoch, batch_idx+1,391, self.learning_rate(e,lr),loss.item(), 100.*correct/total))
                     sys.stdout.flush()
 
-            self.model.eval()
-            self.model.training = False
-            test_loss = 0
-            correct = 0
-            total = 0
-            criterion = nn.CrossEntropyLoss()
-            with torch.no_grad():
-                for batch_idx, (inputs, targets) in enumerate(testloader): 
-                    inputs, targets = inputs.cuda(), targets.cuda()
-                    inputs, targets = Variable(inputs), Variable(targets)
-                    outputs = self.model(inputs)
-                    loss = criterion(outputs, targets)
+              self.model.eval()
+              self.model.training = False
+              test_loss = 0
+              correct = 0
+              total = 0
+              criterion = nn.CrossEntropyLoss()
+              with torch.no_grad():
+                    for batch_idx, (inputs, targets) in enumerate(testloader): 
+                        inputs, targets = inputs.cuda(), targets.cuda()
+                        inputs, targets = Variable(inputs), Variable(targets)
+                        outputs = self.model(inputs)
+                        loss = criterion(outputs, targets)
 
-                    test_loss += loss.item()
-                    predicted = torch.max(outputs.data, 1)[1]
-                    total += targets.size(0)
-                    correct += predicted.eq(targets.data).cpu().sum()
+                        test_loss += loss.item()
+                        predicted = torch.max(outputs.data, 1)[1]
+                        total += targets.size(0)
+                        correct += predicted.eq(targets.data).cpu().sum()
 
         # Save checkpoint when best model
-                acc = 100.*correct/total
-                if acc > self.best_acc:
-                    print('| New Best Accuracy...\t\t\tTop1 = %.2f%%' %(acc)) 
-                    print('| Saving Pruned Model...')
-                    torch.save(self.model,"wide_resnet_iter_hard.pth")
-                    self.best_acc = acc
+                    acc = 100.*correct/total
+                    print('\n | Test {} '.format(acc))
+                    if acc > best_acc:
+                        print('| New Best Accuracy...\t\t\tTop1 = %.2f%%' %(acc)) 
+                        print('| Saving Pruned Model...')
+                        torch.save(self.model,"wide_resnet_iter_hard.pth")
+                        best_acc = acc
+
+            self.bect_acc.append(best_acc)
+            self.net_weights.append(self.number_of_trainable_params(self.model))
