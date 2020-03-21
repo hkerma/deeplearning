@@ -13,8 +13,8 @@ class HardPrunningIter():
     def __init__(self,model,P):
         self.model = model
         self.P = P
-        self.best_acc = []
-        self.net_weights = []
+        self.best_acc = [0]
+        self.net_weights = [0]
         self.count = [0]*3
         self.lenght = [self.model.widen_factor*16, self.model.widen_factor*32, self.model.widen_factor*64]
         self.max_iter = int(max(np.multiply(self.lenght,self.P))/5)
@@ -102,7 +102,7 @@ class HardPrunningIter():
         return init*math.pow(0.2,optim_factor)
 
 
-    def pruning_and_training(self, testloader, trainloader, batch_size = 128, epoch = 3, lr = 0.001):
+    def pruning_and_training(self, testloader, trainloader, batch_size = 128, epoch = 1, lr = 0.001):
         for it in range(self.max_iter):
             best_acc = -1000
             print('\n[1] PRUNING | ITER : {}/{}-----------------------------------------------------------'.format(it+1,self.max_iter))
@@ -135,32 +135,30 @@ class HardPrunningIter():
                     sys.stdout.write('| Iteration [%3d] Epoch [%3d/%3d] Iter [%3d/%3d] LR [%3d] \t\tLoss: %.4f Acc@1: %.3f%%'%(it+1,e + 1, epoch, batch_idx+1,391, self.learning_rate(e,lr),loss.item(), 100.*correct/total))
                     sys.stdout.flush()
 
-              self.model.eval()
-              self.model.training = False
-              test_loss = 0
-              correct = 0
-              total = 0
-              criterion = nn.CrossEntropyLoss()
-              with torch.no_grad():
+                self.model.eval()
+                self.model.training = False
+                test_loss = 0
+                correct = 0
+                total = 0
+                criterion = nn.CrossEntropyLoss()
+                with torch.no_grad():
                     for batch_idx, (inputs, targets) in enumerate(testloader): 
-                        inputs, targets = inputs.cuda(), targets.cuda()
-                        inputs, targets = Variable(inputs), Variable(targets)
-                        outputs = self.model(inputs)
-                        loss = criterion(outputs, targets)
-
-                        test_loss += loss.item()
-                        predicted = torch.max(outputs.data, 1)[1]
-                        total += targets.size(0)
-                        correct += predicted.eq(targets.data).cpu().sum()
+                    	  inputs, targets = inputs.cuda(), targets.cuda()
+                    	  inputs, targets = Variable(inputs), Variable(targets)
+                    	  outputs = self.model(inputs)
+                    	  loss = criterion(outputs, targets)
+                    	  test_loss += loss.item()
+                    	  predicted = torch.max(outputs.data, 1)[1]
+                    	  total += targets.size(0)
+                    	  correct += predicted.eq(targets.data).cpu().sum()
 
         # Save checkpoint when best model
                     acc = 100.*correct/total
                     print('\n | Test {} '.format(acc))
                     if acc > best_acc:
-                        print('| New Best Accuracy...\t\t\tTop1 = %.2f%%' %(acc)) 
-                        print('| Saving Pruned Model...')
-                        torch.save(self.model,"wide_resnet_iter_hard.pth")
-                        best_acc = acc
-
-            self.bect_acc.append(best_acc)
+                    	  print('| New Best Accuracy...\t\t\tTop1 = %.2f%%' %(acc)) 
+                    	  print('| Saving Pruned Model...')
+                    	  torch.save(self.model,"wide_resnet_iter_hard.pth")
+                    	  best_acc = acc
+            self.best_acc.append(best_acc.item())
             self.net_weights.append(self.number_of_trainable_params(self.model))
