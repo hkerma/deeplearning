@@ -8,6 +8,11 @@ from torch.autograd import Variable
 import sys 
 import os 
 
+
+import torch
+from ptflops import get_model_complexity_info
+
+
 class HardPrunningIter():
 
     def __init__(self,model,P):
@@ -27,8 +32,7 @@ class HardPrunningIter():
             score = filt.norm()
             importance.append([i,score])
         return importance
-    def importance_score_depthwise(self,depthwise_conv):
-    	F = 
+
     def extract_min_filter(self,importance,ratio):
         importance_sorted = sorted(importance,key=lambda x:x[-1])
         res = [x[0] for x in importance_sorted]
@@ -110,8 +114,9 @@ class HardPrunningIter():
             print('\n=> Pruning Net... | Layer1 : {}% Layer2 : {}% Layer3 : {}%'.format(self.P[0]*100,self.P[1]*100,self.P[2]*100))
             self.HardPruning()
             self.model.train()
-            removed_weights = 2246474 - self.number_of_trainable_params(self.model)
-            print('Removed weights : {}'.format(removed_weights))
+            flops,params = get_model_complexity_info(self.model,(3, 32, 32), as_strings=True,print_per_layer_stat=False)
+            print('{:<30}  {:<8}'.format('Computational complexity: ', flops))
+            print('{:<30}  {:<8}'.format('Number of parameters: ', params))
             print('\n[2] FINE TUNING----------------------------------------------------------------------')
             for e in range(epoch):
                 train_loss = 0
@@ -132,7 +137,7 @@ class HardPrunningIter():
                     train_loss += loss.item()
                     correct += predicted.eq(targets.data).cpu().sum()
                     sys.stdout.write('\r')
-                    sys.stdout.write('Trainable params [{}]'.format(self.number_of_trainable_params(self.model)))
+                    sys.stdout.write('Trainable params [{}]'.format(params))
                     sys.stdout.write('| Iteration [%3d] Epoch [%3d/%3d] Iter [%3d/%3d] LR [%3d] \t\tLoss: %.4f Acc@1: %.3f%%'%(it+1,e + 1, epoch, batch_idx+1,391, self.learning_rate(e,lr),loss.item(), 100.*correct/total))
                     sys.stdout.flush()
 
