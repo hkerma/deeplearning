@@ -110,8 +110,6 @@ class HRankIter():
                 train_loss = 0
                 correct = 0
                 total = 0
-                if e > 0:
-                    lr = lr/2
                 optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate(e,lr), momentum=0.9)
                 criterion = nn.CrossEntropyLoss()
                 for batch_idx, (inputs,targets) in enumerate(trainloader):

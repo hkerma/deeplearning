@@ -27,7 +27,8 @@ class HardPrunningIter():
             score = filt.norm()
             importance.append([i,score])
         return importance
-
+    def importance_score_depthwise(self,depthwise_conv):
+    	F = 
     def extract_min_filter(self,importance,ratio):
         importance_sorted = sorted(importance,key=lambda x:x[-1])
         res = [x[0] for x in importance_sorted]
@@ -73,7 +74,7 @@ class HardPrunningIter():
         N = int(((self.model.depth-4)/6))
         Fi_conv1,Fi_conv2,Fn_conv1,Fn_conv2  = weak_filters[0],weak_filters[1],weak_filters[2][0],weak_filters[2][1]
         self.pruning_conv(layer[-1].conv1,Fn_conv1,DG)
-        #self.pruning_conv(layer[-1].conv2,Fn_conv2,DG)
+        self.pruning_conv(layer[-1].conv2,Fn_conv2,DG)
         for i in range(N-1):
             self.pruning_conv(layer[i].conv1,Fi_conv1[i],DG)
             #self.pruning_conv(layer[i].conv2,Fi_conv2[i],DG)
